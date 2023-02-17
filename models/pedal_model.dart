@@ -1,10 +1,11 @@
 import 'dart:ffi';
 
+import 'package:flutter/animation.dart';
 import 'package:guitar_pedal_app/models/atribute_model.dart';
 
 class Pedal {
   String name;
-  List<int> hexColor = [0, 0, 0, 0, 0, 0];
+  List<int> hexColor = [0, 0, 0, 0];
   List<PedalAtribute> effects;
 
   Pedal(this.name, this.effects);
@@ -12,6 +13,10 @@ class Pedal {
   Pedal.noConfig()
       : name = "",
         effects = [];
+
+  Color getColor() {
+    return Color.fromARGB(hexColor[0], hexColor[1], hexColor[2], hexColor[3]);
+  }
 
   static Pedal fromConfig(String config) {
     Pedal pedal = Pedal.noConfig();
@@ -25,8 +30,8 @@ class Pedal {
     pedal.name = attributes[0];
     attributes.removeAt(0);
 
-    /// Next 6 values are the hex color code
-    for (int i = 0; i < 6; i++) {
+    /// Next 4 values are the RGBA color code
+    for (int i = 0; i < 4; i++) {
       pedal.hexColor[i] = int.parse(attributes[0]);
       attributes.removeAt(0);
     }
@@ -50,12 +55,10 @@ class Pedal {
       : name = json['name'] as String,
         effects = effectsFromJson(json['effects'] as Map<String, dynamic>),
         hexColor = [
-          (json['hexColor'] as Map<String, dynamic>)['0'] as int,
-          (json['hexColor'] as Map<String, dynamic>)['1'] as int,
-          (json['hexColor'] as Map<String, dynamic>)['2'] as int,
-          (json['hexColor'] as Map<String, dynamic>)['3'] as int,
-          (json['hexColor'] as Map<String, dynamic>)['4'] as int,
-          (json['hexColor'] as Map<String, dynamic>)['5'] as int
+          (json['hexColor'] as Map<String, dynamic>)['A'] as int,
+          (json['hexColor'] as Map<String, dynamic>)['R'] as int,
+          (json['hexColor'] as Map<String, dynamic>)['G'] as int,
+          (json['hexColor'] as Map<String, dynamic>)['B'] as int,
         ];
 
   Map<String, dynamic> toJson() {
@@ -63,12 +66,10 @@ class Pedal {
       'name': name,
       'effects': effectsToJson(),
       'hexColor': {
-        '0': hexColor[0],
-        '1': hexColor[1],
-        '2': hexColor[2],
-        '3': hexColor[3],
-        '4': hexColor[4],
-        '5': hexColor[5]
+        'A': hexColor[0],
+        'R': hexColor[1],
+        'G': hexColor[2],
+        'B': hexColor[3],
       }
     };
   }

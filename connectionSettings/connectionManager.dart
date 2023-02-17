@@ -1,6 +1,7 @@
 import 'package:guitar_pedal_app/bloc/app_bloc.dart';
 import 'package:guitar_pedal_app/connectionSettings/device.dart';
 import 'package:guitar_pedal_app/models/PedalBoard_model.dart';
+import 'package:guitar_pedal_app/models/atribute_model.dart';
 import 'package:guitar_pedal_app/models/pedal_model.dart';
 
 class ConnectionManager {
@@ -39,6 +40,24 @@ class ConnectionManager {
         activeDevice.sendCommand(command);
       }
       commands = [];
+
+      /**
+       * If we are in a state where the user could be updating knobs then
+       * check if any need to be updated
+       */
+      if (bloc.state is DisplayPedalBoard) {
+        List<Pedal> pedalsToUpdate = [];
+        for (Pedal pedal in bloc.appRepository.selected.pedals) {
+          bool updatePedal = false;
+          for (PedalAtribute knob in pedal.effects) {
+            updatePedal |= knob.needsUpdate;
+          }
+          if (updatePedal) pedalsToUpdate.add(pedal);
+        }
+        if (pedalsToUpdate.isNotEmpty) {
+          //Send update command
+        }
+      }
 
       /* Handle any responses from the device */
       for (String response in activeDevice.readResponses()) {
@@ -108,7 +127,7 @@ class ConnectionManager {
 
   List<Pedal> getknownPedals(String response) {
     response = response.substring(2, response.length - 3);
-    
+
     List<String> configs = response.split('|');
     List<Pedal> pedals = [];
     for (String config in configs) {

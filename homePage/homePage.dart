@@ -78,8 +78,8 @@ class _HomePage extends State<HomePage> {
           crossAxisSpacing: 10),
       itemBuilder: (_, index) {
         return index <= (pedalBoards.length - 1)
-            ? PedalBoardWidget(
-                pedalBoards[index].id, pedalBoards[index].isActive, pedalBoards[index].isValid)
+            ? PedalBoardWidget(pedalBoards[index].id,
+                pedalBoards[index].isActive, pedalBoards[index].isValid)
             : Padding(
                 padding: const EdgeInsets.all(20),
                 child: FloatingActionButton(
@@ -109,7 +109,7 @@ class _HomePage extends State<HomePage> {
   }
 
   genPedalBoardPage() {
-    return PedalBoard(bloc.appRepository.selected);
+    return PedalBoard(bloc.appRepository.selected.id);
   }
 
   genScreenWithNavBar(Function() screen, String title) {
@@ -235,7 +235,11 @@ class PedalBoardWidget extends StatelessWidget {
           Padding(
               padding: const EdgeInsets.only(top: 5, left: 150),
               child: Icon(Icons.power_settings_new,
-                  color:isValid ? isActive ? Colors.green : Colors.white54 : Colors.red)),
+                  color: isValid
+                      ? isActive
+                          ? Colors.green
+                          : Colors.white54
+                      : Colors.red)),
           const Padding(
               padding: EdgeInsets.only(top: 2.5, left: 147.5),
               child: Icon(

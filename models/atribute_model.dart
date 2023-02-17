@@ -3,12 +3,13 @@ class PedalAtribute {
   double maxValue;
   double stepSize;
   double currValue;
+  bool needsUpdate = false;
   String name;
 
   PedalAtribute.setCurrentValue(
       this.minValue, this.maxValue, this.stepSize, this.currValue, this.name);
   PedalAtribute(this.name, this.maxValue, this.minValue, this.stepSize)
-      : currValue = minValue;
+      : currValue = minValue + stepSize;
 
   PedalAtribute.fromJson(Map<String, dynamic> json)
       : minValue = json['minValue'] as double,
