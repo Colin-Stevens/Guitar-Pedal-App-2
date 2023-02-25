@@ -86,7 +86,7 @@ class CustomKnobState extends State<CustomKnob> {
                         child: Icon(
                           Icons.arrow_upward,
                           color: Colors.white,
-                          size: size-8,
+                          size: size-10,
                         ))),
               ),
             )),

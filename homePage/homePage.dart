@@ -6,6 +6,7 @@ import 'package:guitar_pedal_app/bloc/app_bloc.dart';
 import 'package:guitar_pedal_app/connectionSettings/selectDeviceSettings.dart';
 import 'package:guitar_pedal_app/homePage/createPedalBoardPage.dart';
 import 'package:guitar_pedal_app/homePage/createPedalPage.dart';
+import 'package:guitar_pedal_app/homePage/equilizer.dart';
 import 'package:guitar_pedal_app/loadingScreen/loadingScreen.dart';
 import 'package:guitar_pedal_app/models/PedalBoard_model.dart';
 import 'package:guitar_pedal_app/settingsPage/settingsPage.dart';
@@ -34,6 +35,7 @@ class _HomePage extends State<HomePage> {
   @override
   void dispose() {
     connectionTimer.cancel();
+    bloc.appRepository.EQcontroller.close();
     super.dispose();
   }
 
@@ -69,31 +71,58 @@ class _HomePage extends State<HomePage> {
 
   genPedalGrid() {
     List<PedalBoardModel> pedalBoards = bloc.appRepository.pedalBoardlist;
-    return GridView.builder(
-      itemCount: pedalBoards.length + 1,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          childAspectRatio: 1.3,
-          crossAxisCount: 2,
-          mainAxisSpacing: 20,
-          crossAxisSpacing: 10),
-      itemBuilder: (_, index) {
-        return index <= (pedalBoards.length - 1)
-            ? PedalBoardWidget(pedalBoards[index].id,
-                pedalBoards[index].isActive, pedalBoards[index].isValid)
-            : Padding(
-                padding: const EdgeInsets.all(20),
-                child: FloatingActionButton(
-                    onPressed: () {
-                      bloc.add(AddPedalBoard(PedalBoardModel.noConfig()));
+
+    return Stack(children: [
+      EquilizerWidget(bloc.appRepository.EQcontroller.stream),
+      DraggableScrollableSheet(
+          initialChildSize: .95,
+          minChildSize: 0.5,
+          maxChildSize: .95,
+          builder: (BuildContext context, ScrollController scrollController) {
+            return Stack(children: [
+              SizedBox(
+                  height: 300,
+                  width: MediaQuery.of(context).size.width,
+                  child: const DecoratedBox(
+                      decoration: BoxDecoration(
+                    color: Colors.white,
+                  ))),
+              Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).padding.bottom),
+                  child: GridView.builder(
+                    controller: scrollController,
+                    shrinkWrap: true,
+                    itemCount: pedalBoards.length + 1,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                            childAspectRatio: 1.3,
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 20,
+                            crossAxisSpacing: 10),
+                    itemBuilder: (_, index) {
+                      return index <= (pedalBoards.length - 1)
+                          ? PedalBoardWidget(
+                              pedalBoards[index].id,
+                              pedalBoards[index].isActive,
+                              pedalBoards[index].isValid)
+                          : Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: FloatingActionButton(
+                                  onPressed: () {
+                                    bloc.add(AddPedalBoard(
+                                        PedalBoardModel.noConfig()));
+                                  },
+                                  child: const Icon(
+                                    Icons.add,
+                                    size: 75,
+                                  )));
                     },
-                    child: const Icon(
-                      Icons.add,
-                      size: 75,
-                    )));
-      },
-      primary: true,
-      padding: const EdgeInsets.all(20),
-    );
+                    padding: const EdgeInsets.all(20),
+                  ))
+            ]);
+          })
+    ]);
   }
 
   genSettings() {
@@ -109,16 +138,39 @@ class _HomePage extends State<HomePage> {
   }
 
   genPedalBoardPage() {
-    return PedalBoard(bloc.appRepository.selected.id);
+    return Stack(children: [
+      EquilizerWidget(bloc.appRepository.EQcontroller.stream),
+      DraggableScrollableSheet(
+          initialChildSize: .95,
+          minChildSize: 0.5,
+          maxChildSize: .95,
+          builder: (BuildContext context, ScrollController scrollController) {
+            return Stack(children: [
+              SizedBox(
+                  height: 300,
+                  width: MediaQuery.of(context).size.width,
+                  child: const DecoratedBox(
+                      decoration: BoxDecoration(
+                    color: Colors.white,
+                  ))),
+              Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).padding.bottom),
+                  child: PedalBoard(
+                      bloc.appRepository.selected.id, scrollController))
+            ]);
+          })
+    ]);
   }
 
   genScreenWithNavBar(Function() screen, String title) {
     return MaterialApp(
-        theme: ThemeData(
-            primaryColor: Colors.brown.shade900, brightness: Brightness.dark),
+        theme: ThemeData(primaryColor: Colors.brown.shade900),
         home: Scaffold(
             appBar: AppBar(title: Text(title)),
             body: screen(),
+            //    extendBodyBehindAppBar: true,
+            extendBody: true,
             bottomNavigationBar: BottomNavigationBar(
                 items: <BottomNavigationBarItem>[
                   const BottomNavigationBarItem(

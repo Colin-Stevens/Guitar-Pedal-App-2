@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:guitar_pedal_app/connectionSettings/connectionManager.dart';
 import 'package:guitar_pedal_app/models/PedalBoard_model.dart';
 
@@ -5,9 +7,10 @@ class AppRepository {
   List<PedalBoardModel> pedalBoardlist = [];
   late ConnectionManager connectionManager;
   PedalBoardModel selected = PedalBoardModel.noConfig();
+  StreamController<List<double>> EQcontroller =
+      StreamController<List<double>>.broadcast();
 
   int navBarIndex = 0;
-
 
   Map<String, dynamic> pedalBoardlistToJson() {
     Map<String, dynamic> json = {};

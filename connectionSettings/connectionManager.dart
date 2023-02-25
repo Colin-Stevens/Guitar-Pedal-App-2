@@ -18,6 +18,7 @@ class ConnectionManager {
   int heartbeatTicks = 0;
   List<String> commands = [];
   AppBloc bloc;
+  List<double> eqData = [];
 
   ConnectionManager(this.bloc);
 
@@ -25,7 +26,10 @@ class ConnectionManager {
   /// Polling freq = 60Hz
   /// Tasks:
   ///   Heartbeat
-  ///   Check for equilizer data
+  ///   Issue any Commands in the Que
+  ///   Update Knob values
+  ///   Handle any responses from pedal
+  ///
   void serviceRoutine() {
     if (deviceConnected) {
       /* Handle Heartbeat */
@@ -46,16 +50,22 @@ class ConnectionManager {
        * check if any need to be updated
        */
       if (bloc.state is DisplayPedalBoard) {
-        List<Pedal> pedalsToUpdate = [];
-        for (Pedal pedal in bloc.appRepository.selected.pedals) {
-          bool updatePedal = false;
-          for (PedalAtribute knob in pedal.effects) {
-            updatePedal |= knob.needsUpdate;
+        bool needsUpdate;
+        for (int pedalIdx = 0;
+            pedalIdx < bloc.appRepository.selected.pedals.length;
+            pedalIdx++) {
+          needsUpdate = false;
+          for (PedalAtribute knob
+              in bloc.appRepository.selected.pedals[pedalIdx].effects) {
+            if (knob.needsUpdate) {
+              needsUpdate = true;
+              knob.needsUpdate = false;
+            }
           }
-          if (updatePedal) pedalsToUpdate.add(pedal);
-        }
-        if (pedalsToUpdate.isNotEmpty) {
-          //Send update command
+          if (needsUpdate) {
+            activeDevice.updatePedal(
+                bloc.appRepository.selected.pedals[pedalIdx], pedalIdx);
+          }
         }
       }
 
@@ -68,6 +78,9 @@ class ConnectionManager {
           case SYNC_PEDALS:
             activeDevice.knownPedals = getknownPedals(response);
             setValidBoards();
+            break;
+          case EQ_DATA:
+            proccessEQData(response);
             break;
           default:
             print(
@@ -139,7 +152,7 @@ class ConnectionManager {
 
   /// Set isvalid flag for all pedal boards in repo
   void setValidBoards() {
-    /// Generate a list of known
+    /// Generate a list of known pedals
     List<String> knownPedalNames = [];
     for (Pedal knownPedal in activeDevice.knownPedals) {
       knownPedalNames.add(knownPedal.name);
@@ -154,6 +167,22 @@ class ConnectionManager {
         }
       }
     }
+  }
+
+  /// TODO: Validate indexing is correct
+  /// No longer need to send pedal name. Update on esp32 first
+  void reorderPedal(int oldIdx, int newIdx, String pedalName) {
+    commands.add("<$SWAP_PEDAL $pedalName $oldIdx $newIdx | >");
+  }
+
+  /// TODO: Sort of ineffcient to send data as ascii characters
+  void proccessEQData(String response) {
+    response = response.substring(3, response.length - 4);
+    List<double> buffer = [];
+    for (String datapoint in response.split(' ')) {
+      buffer.add(double.parse(datapoint));
+    }
+    bloc.appRepository.EQcontroller.add(buffer);
   }
 
   Map<String, dynamic> knownDevicesToJson() {

@@ -1,9 +1,12 @@
+import 'package:guitar_pedal_app/models/atribute_model.dart';
 import 'package:guitar_pedal_app/models/pedal_model.dart';
 
 const HEARTBEAT = 'H';
 const SYNC_CONFIG = 'S';
 const SYNC_PEDALS = 'P';
-
+const UPDATE_PEDAL = 'U';
+const SWAP_PEDAL = 'R';
+const EQ_DATA = 'E';
 class Device {
   String macId;
   String name;
@@ -42,6 +45,16 @@ class Device {
     return true;
   }
 
+  /// Convert Pedal to Update Request and Issue request
+  bool updatePedal(Pedal pedal, int pedalIdx){
+    String command = "<$UPDATE_PEDAL $pedalIdx ";
+    for(PedalAtribute effect in pedal.effects){
+      command += "${effect.currValue} "; /** TODO: format percision */
+    }
+    command += "| >"; /** TODO: Unsure if this last space is handled correclty on esp32 */
+    return sendCommand(command);
+  } 
+
   Map<String, dynamic> knownPedalsToJson() {
     Map<String, dynamic> json = {};
     int index = 0;
@@ -67,6 +80,7 @@ class Device {
         knownPedals =
             knownPedalsFromJson(json['knownPedals'] as Map<String, dynamic>);
 
+  
   Map<String, dynamic> toJson() {
     return {
       'macId': macId,
