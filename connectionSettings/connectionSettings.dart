@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:guitar_pedal_app/bloc/app_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:guitar_pedal_app/bloc/app_repository.dart';
-import 'package:guitar_pedal_app/connectionSettings/device.dart';
 
 class ConnectionSettings extends StatefulWidget {
   const ConnectionSettings({super.key});
@@ -22,34 +20,7 @@ class _ConnectionSettings extends State<ConnectionSettings> {
     AppBloc bloc = BlocProvider.of<AppBloc>(context);
 
     return Stack(
-      children: [
-        ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            children: <Widget>[
-              TextFormField(
-                decoration: const InputDecoration(
-                    border: UnderlineInputBorder(),
-                    labelText: 'Enter ESP32 Response'),
-                onChanged: (response) => textvalue = response,
-              ),
-              TextButton(
-                  onPressed: () {
-                    bloc.appRepository.connectionManager.activeDevice
-                        .debugResponses
-                        .add(textvalue);
-                  },
-                  child: const Text('Send Response')),
-              for (Device device
-                  in bloc.appRepository.connectionManager.knownDevices)
-                TextButton(
-                    onPressed: () {
-                      bloc.appRepository.connectionManager
-                          .connectToDevice(device.name);
-                    },
-                    child: Text(device.name)),
-            ]),
-      ],
-    );
+      children: const []);
   }
 }
 

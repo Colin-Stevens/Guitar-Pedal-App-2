@@ -131,7 +131,7 @@ class _HomePage extends State<HomePage> {
 
   genConnectionSettings() {
     if (bloc.appRepository.connectionManager.deviceConnected) {
-      return ConnectionSettings();
+      return const SelectDeviceSettings();
     } else {
       return const SelectDeviceSettings();
     }

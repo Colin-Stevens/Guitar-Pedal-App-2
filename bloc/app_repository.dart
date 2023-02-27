@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:guitar_pedal_app/connectionSettings/connectionManager.dart';
 import 'package:guitar_pedal_app/models/PedalBoard_model.dart';
 
@@ -7,10 +8,12 @@ class AppRepository {
   List<PedalBoardModel> pedalBoardlist = [];
   late ConnectionManager connectionManager;
   PedalBoardModel selected = PedalBoardModel.noConfig();
+  int navBarIndex = 0;
+
+  // Non state varibles
   StreamController<List<double>> EQcontroller =
       StreamController<List<double>>.broadcast();
-
-  int navBarIndex = 0;
+  
 
   Map<String, dynamic> pedalBoardlistToJson() {
     Map<String, dynamic> json = {};

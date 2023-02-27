@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:guitar_pedal_app/bloc/app_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:guitar_pedal_app/connectionSettings/device.dart';
+import 'package:tuple/tuple.dart';
 
 class SelectDeviceSettings extends StatelessWidget {
   final Color oddTileColor = Colors.white54;
@@ -11,16 +12,16 @@ class SelectDeviceSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AppBloc bloc = BlocProvider.of<AppBloc>(context);
-    List<Device> availableDevices =
-        bloc.appRepository.connectionManager.knownDevices;
+    List<Tuple2<String, String>> availableDevices =
+        bloc.appRepository.connectionManager.discoveredDevices;
     return Stack(
       children: [
         ListView(
             padding: const EdgeInsets.symmetric(horizontal: 40),
             children: <Widget>[
               for (int index = 0; index < availableDevices.length; index += 1)
-                DeviceWidget(index / 2 > 0 ? oddTileColor : evenTileColor,
-                    availableDevices[index].name),
+                  DeviceWidget(index / 2 > 0 ? oddTileColor : evenTileColor,
+                      availableDevices[index].item1),
             ])
       ],
     );
@@ -43,7 +44,7 @@ class DeviceWidget extends StatelessWidget {
           tileColor: tileColor,
           title: Text(id),
           onTap: () {
-            bloc.appRepository.connectionManager.connectToDevice(id);
+            //bloc.appRepository.connectionManager.connectToDevice(id);
           },
         ));
   }

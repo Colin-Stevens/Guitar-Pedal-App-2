@@ -1,43 +1,46 @@
+import 'dart:async';
+
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:guitar_pedal_app/bloc/app_bloc.dart';
 import 'package:guitar_pedal_app/connectionSettings/device.dart';
 import 'package:guitar_pedal_app/models/PedalBoard_model.dart';
 import 'package:guitar_pedal_app/models/atribute_model.dart';
 import 'package:guitar_pedal_app/models/pedal_model.dart';
+import 'package:tuple/tuple.dart';
 
 class ConnectionManager {
   /// Constants
   static const int pollPeriod_ms = 50;
-  static const int heartbeatTimeout_ms = 600000;
 
   /// State varibles
-  bool deviceConnected = false;
-  List<Device> knownDevices = [];
-  Device activeDevice = Device.noConfig();
+  /// Name, Id
+  List<Tuple2<String, String>> uniqueDeviceNames = [];
 
   /// Non state retention varibles
-  int heartbeatTicks = 0;
+  bool deviceConnected = false;
+  Device activeDevice = Device.noConfig();
   List<String> commands = [];
   AppBloc bloc;
   List<double> eqData = [];
+
+  List<Tuple2<String, String>> discoveredDevices = [];
+  late StreamSubscription<DiscoveredDevice> _scanStream;
+  late Stream<ConnectionStateUpdate> _currentConnectionStream;
+  bool scanning = false;
 
   ConnectionManager(this.bloc);
 
   /// Main Function for polling tasks
   /// Polling freq = 60Hz
   /// Tasks:
-  ///   Heartbeat
   ///   Issue any Commands in the Que
   ///   Update Knob values
   ///   Handle any responses from pedal
   ///
   void serviceRoutine() {
+    /// TODO: add functionality to check ble stack status and get permissions for use
     if (deviceConnected) {
       /* Handle Heartbeat */
-      if (heartbeatTicks * pollPeriod_ms > heartbeatTimeout_ms) {
-        deviceConnected = false;
-        return;
-      }
-      heartbeatTicks++;
 
       /* Issue any commands in the que */
       for (String command in commands) {
@@ -70,11 +73,9 @@ class ConnectionManager {
       }
 
       /* Handle any responses from the device */
-      for (String response in activeDevice.readResponses()) {
+      while (activeDevice.recievedResponses.isNotEmpty) {
+        String response = activeDevice.recievedResponses.removeAt(0);
         switch (response[1]) {
-          case HEARTBEAT:
-            heartbeatTicks = 0;
-            break;
           case SYNC_PEDALS:
             activeDevice.knownPedals = getknownPedals(response);
             setValidBoards();
@@ -88,54 +89,75 @@ class ConnectionManager {
             break;
         }
       }
-    } else {
-      pollknownDevices();
+    }
+    if (!scanning) {
+      _scanStream.cancel();
+      startScanForDevices();
     }
   }
 
-  /// Searchs the ether for any devices we have connected to before
-  /// If one is found it automatically connects and sets it as the active device
-  /// Only run this if there is no device connected
-  void pollknownDevices() {
-    for (Device device in knownDevices) {
-      if (device.connect()) {
-        initDevice(device);
-        break;
-      }
-    }
+  /// Scans the ether for any devices
+  void startScanForDevices() {
+    scanning = true;
+    List<Tuple2<String, String>> discoveredDevicesTmp = [];
+    _scanStream = activeDevice.flutterReactiveBle
+        .scanForDevices(withServices: [pedalService]).listen(
+            (device) {
+              /// Lets try to conenct to this device
+              /// TODO Figure out if we also need to check if we are trying to connect to a device right now
+              if (!deviceConnected) {
+                deviceConnected = connectToDevice(device.id, device.name);
+              }
+              discoveredDevicesTmp
+                  .add(Tuple2<String, String>(device.name, device.id));
+            },
+            onError: (obj) {},
+            onDone: () {
+              scanning = false;
+              discoveredDevices = discoveredDevicesTmp;
+            });
   }
 
-  /// Try to connect to a known device
-  bool connectToDevice(String deviceName) {
-    for (Device device in knownDevices) {
-      if (device.name == deviceName) {
-        if (device.connect()) {
-          return initDevice(device);
-        }
-        return false;
+  /// Try to connect to a device
+  bool connectToDevice(String deviceId, String name) {
+    _currentConnectionStream = activeDevice.flutterReactiveBle.connectToDevice(
+      id: deviceId,
+      servicesWithCharacteristicsToDiscover: {
+        pedalService: [rxUuid, txUuid]
+      },
+      connectionTimeout: const Duration(seconds: 2),
+    );
+
+    _currentConnectionStream.listen((event) {
+      // Handle connection state updates
+      switch (event.connectionState) {
+        // We're connected and good to go!
+        case DeviceConnectionState.connected:
+          {
+            activeDevice.id = deviceId;
+            activeDevice.name = name;
+            activeDevice.setCharacteristics();
+            initDevice();
+            break;
+          }
+        // Can add various state state updates on disconnect
+        case DeviceConnectionState.disconnected:
+          {
+            deviceConnected = false;
+            break;
+          }
+        default:
       }
-    }
+    }, onError: (Object error) {
+      // Handle a possible error
+    });
+
     return false;
   }
 
-  /// This is a new deivce, need to create it
-  bool connectToNewDevice(
-      String deviceName, String deviceMacID, String productType) {
-    Device newDevice = Device(deviceMacID, deviceName, productType);
-    if (newDevice.connect()) {
-      knownDevices.add(newDevice);
-      return initDevice(newDevice);
-    }
-    return false;
-  }
-
-  bool initDevice(Device device) {
-    activeDevice = device;
+  void initDevice() {
     commands.add('<$SYNC_PEDALS>');
     deviceConnected = true;
-    heartbeatTicks = 0;
-
-    return true;
   }
 
   List<Pedal> getknownPedals(String response) {
@@ -185,38 +207,33 @@ class ConnectionManager {
     bloc.appRepository.EQcontroller.add(buffer);
   }
 
-  Map<String, dynamic> knownDevicesToJson() {
+  Map<String, dynamic> uniqueDeviceNamesToJson() {
     Map<String, dynamic> json = {};
     int index = 0;
-    for (Device device in knownDevices) {
-      json['$index'] = device.toJson();
+    for (Tuple2<String, String> identifier in uniqueDeviceNames) {
+      json['$index'] = {"Name": identifier.item1, "Id": identifier.item2};
       index++;
     }
 
     return json;
   }
 
-  static List<Device> knownDevicesFromJson(Map<String, dynamic> json) {
-    List<Device> knownDevicesTmp = [];
+  static List<Tuple2<String, String>> uniqueDeviceNamesFromJson(
+      Map<String, dynamic> json) {
+    List<Tuple2<String, String>> uniqueDeviceNamesTmp = [];
     for (String key in json.keys) {
-      knownDevicesTmp.add(Device.fromJson(json[key] as Map<String, dynamic>));
+      uniqueDeviceNamesTmp.add(Tuple2<String, String>(
+          json[key]["Name"] as String, json[key]["Id"] as String));
     }
-    return knownDevicesTmp;
+    return uniqueDeviceNamesTmp;
   }
 
   ConnectionManager.fromJson(AppBloc bloc_, Map<String, dynamic> json)
       : bloc = bloc_,
-        deviceConnected = json['deviceConnected'] as bool,
-        activeDevice =
-            Device.fromJson(json['activeDevice'] as Map<String, dynamic>),
-        knownDevices =
-            knownDevicesFromJson(json['knownDevices'] as Map<String, dynamic>);
+        uniqueDeviceNames = uniqueDeviceNamesFromJson(
+            json['uniqueDeviceNames'] as Map<String, dynamic>);
 
   Map<String, dynamic> toJson() {
-    return {
-      'deviceConnected': deviceConnected,
-      'activeDevice': activeDevice.toJson(),
-      'knownDevices': knownDevicesToJson()
-    };
+    return {'uniqueDeviceNames': uniqueDeviceNamesToJson()};
   }
 }
