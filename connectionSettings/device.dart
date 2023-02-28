@@ -8,14 +8,14 @@ const UPDATE_PEDAL = 'U';
 const SWAP_PEDAL = 'R';
 const EQ_DATA = 'E';
 
-Uuid pedalService = Uuid.parse("091bad492-b950-4226-aa2b-4ede9fa42f59");
-Uuid rxUuid = Uuid.parse("091bad492-b950-4226-aa2b-4ede9fa42f59");
-Uuid txUuid = Uuid.parse("091bad492-b950-4226-aa2b-4ede9fa42f59");
+Uuid pedalService = Uuid.parse("91bad492-b950-4226-aa2b-4ede9fa42f59");
+Uuid rxUuid = Uuid.parse("cba1d466-344c-4be3-ab3f-189f80dd7518");
+Uuid txUuid = Uuid.parse("cba1d466-344c-4be3-ab3f-189f80dd7519");
 
 class Device {
   String id;
   String name;
-  late FlutterReactiveBle flutterReactiveBle;
+  FlutterReactiveBle flutterReactiveBle = FlutterReactiveBle();
   late QualifiedCharacteristic _rxCharacteristic;
   late QualifiedCharacteristic _txCharacteristic;
   String incomingCommand = "";

@@ -25,6 +25,7 @@ class ConnectionManager {
 
   List<Tuple2<String, String>> discoveredDevices = [];
   late StreamSubscription<DiscoveredDevice> _scanStream;
+  bool _scanStreamIsInitilized = false;
   late Stream<ConnectionStateUpdate> _currentConnectionStream;
   bool scanning = false;
 
@@ -91,7 +92,9 @@ class ConnectionManager {
       }
     }
     if (!scanning) {
-      _scanStream.cancel();
+      if (_scanStreamIsInitilized) {
+        _scanStream.cancel();
+      }
       startScanForDevices();
     }
   }
@@ -99,6 +102,7 @@ class ConnectionManager {
   /// Scans the ether for any devices
   void startScanForDevices() {
     scanning = true;
+    _scanStreamIsInitilized = true;
     List<Tuple2<String, String>> discoveredDevicesTmp = [];
     _scanStream = activeDevice.flutterReactiveBle
         .scanForDevices(withServices: [pedalService]).listen(
