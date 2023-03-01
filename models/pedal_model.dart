@@ -19,6 +19,7 @@ class Pedal {
   }
 
   static Pedal fromConfig(String config) {
+    print(config);
     Pedal pedal = Pedal.noConfig();
     List<String> attributes = config.split(' ');
 
@@ -38,7 +39,7 @@ class Pedal {
 
     /// Grab the Knob configuration. They are sent as:
     /// Name Max Min Step
-
+    print(attributes);
     while (attributes.isNotEmpty) {
       pedal.effects.add(PedalAtribute(
           attributes[0],

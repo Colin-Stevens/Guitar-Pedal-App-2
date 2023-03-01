@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:guitar_pedal_app/bloc/app_bloc.dart';
@@ -11,6 +12,8 @@ import 'package:tuple/tuple.dart';
 class ConnectionManager {
   /// Constants
   static const int pollPeriod_ms = 50;
+  static const int pollPeriodScaner_ms = 2000;
+  int pollPeriodScanerCounter = 0;
 
   /// State varibles
   /// Name, Id
@@ -26,7 +29,7 @@ class ConnectionManager {
   List<Tuple2<String, String>> discoveredDevices = [];
   late StreamSubscription<DiscoveredDevice> _scanStream;
   bool _scanStreamIsInitilized = false;
-  late Stream<ConnectionStateUpdate> _currentConnectionStream;
+  late StreamSubscription<ConnectionStateUpdate> _currentConnectionStream;
   bool scanning = false;
 
   ConnectionManager(this.bloc);
@@ -92,10 +95,15 @@ class ConnectionManager {
       }
     }
     if (!scanning) {
+      pollPeriodScanerCounter++;
       if (_scanStreamIsInitilized) {
         _scanStream.cancel();
       }
-      startScanForDevices();
+      if (activeDevice.flutterReactiveBle.status == BleStatus.ready &&
+          pollPeriodScanerCounter > (pollPeriodScaner_ms / pollPeriod_ms)) {
+        startScanForDevices();
+        pollPeriodScanerCounter = 0;
+      }
     }
   }
 
@@ -110,7 +118,8 @@ class ConnectionManager {
               /// Lets try to conenct to this device
               /// TODO Figure out if we also need to check if we are trying to connect to a device right now
               if (!deviceConnected) {
-                deviceConnected = connectToDevice(device.id, device.name);
+                deviceConnected = true;
+                connectToDevice(device.id, device.name);
               }
               discoveredDevicesTmp
                   .add(Tuple2<String, String>(device.name, device.id));
@@ -123,21 +132,26 @@ class ConnectionManager {
   }
 
   /// Try to connect to a device
-  bool connectToDevice(String deviceId, String name) {
-    _currentConnectionStream = activeDevice.flutterReactiveBle.connectToDevice(
+  void connectToDevice(String deviceId, String name) {
+    _currentConnectionStream = activeDevice.flutterReactiveBle
+        .connectToDevice(
       id: deviceId,
       servicesWithCharacteristicsToDiscover: {
         pedalService: [rxUuid, txUuid]
       },
       connectionTimeout: const Duration(seconds: 2),
-    );
-
-    _currentConnectionStream.listen((event) {
+    )
+        .listen((event) {
       // Handle connection state updates
       switch (event.connectionState) {
         // We're connected and good to go!
+        case DeviceConnectionState.connecting:
+          print("CONNECting");
+          break;
         case DeviceConnectionState.connected:
           {
+            print("CONNECTED");
+            deviceConnected = true;
             activeDevice.id = deviceId;
             activeDevice.name = name;
             activeDevice.setCharacteristics();
@@ -154,9 +168,7 @@ class ConnectionManager {
       }
     }, onError: (Object error) {
       // Handle a possible error
-    });
-
-    return false;
+    }, onDone: () {});
   }
 
   void initDevice() {
