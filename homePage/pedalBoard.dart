@@ -69,13 +69,10 @@ class _PedalBoard extends State<PedalBoard> {
          *  TODO: Validate boundsare correct
          */
         if (oldIndex == pedalBoardModel.pedals.length ||
-            newIndex == pedalBoardModel.pedals.length) {
+            newIndex == pedalBoardModel.pedals.length || oldIndex == newIndex) {
           return;
         }
         setState(() {
-          if (oldIndex < newIndex) {
-            newIndex -= 1;
-          }
           final Pedal pedal = pedalBoardModel.pedals.removeAt(oldIndex);
           pedalBoardModel.pedals.insert(newIndex, pedal);
           bloc.appRepository.connectionManager
@@ -98,18 +95,18 @@ class _PedalBoard extends State<PedalBoard> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    verticalDirection: VerticalDirection.down,
-                    children: [
+                    child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  verticalDirection: VerticalDirection.down,
+                  children: [
                     Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       mainAxisSize: MainAxisSize.max,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        for(int i=0; i<pedal.effects.length;i+=2)
+                        for (int i = 0; i < pedal.effects.length; i += 2)
                           knob(pedal.effects[i])
                       ],
                     ),
@@ -118,13 +115,14 @@ class _PedalBoard extends State<PedalBoard> {
                       mainAxisSize: MainAxisSize.max,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        for(int i=1; i<pedal.effects.length;i+=2)
+                        for (int i = 1; i < pedal.effects.length; i += 2)
                           knob(pedal.effects[i])
                       ],
                     )
-                  ],)),
+                  ],
+                )),
                 Padding(
-                  padding: const EdgeInsets.only(top: 10, left: 2),
+                  padding: const EdgeInsets.only(left: 2),
                   child: Text(
                     pedal.name,
                     style: const TextStyle(
@@ -152,9 +150,9 @@ class _PedalBoard extends State<PedalBoard> {
                       ]));
           if (val == 'Yes') {
             setState(() {
-              if(bloc.appRepository.selected.isActive){
+              if (bloc.appRepository.selected.isActive) {
                 bloc.appRepository.connectionManager.deletePedal(
-                  pedal.name, pedalBoardModel.pedals.indexOf(pedal));
+                    pedal.name, pedalBoardModel.pedals.indexOf(pedal));
               }
               pedalBoardModel.pedals.remove(pedal);
             });
@@ -185,7 +183,7 @@ class _PedalBoard extends State<PedalBoard> {
                   value: effect.currValue,
                   color: Colors.black,
                   onChanged: valueChangedListener,
-                  size: 70)),
+                  size: 85)),
           Text(
             effect.name,
             style: const TextStyle(

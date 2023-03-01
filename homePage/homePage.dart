@@ -285,14 +285,14 @@ class PedalBoardWidget extends StatelessWidget {
       GestureDetector(
         child: Stack(children: [
           const Padding(
-              padding: EdgeInsets.only(top: 3.5, left: 125.5),
+              padding: EdgeInsets.only(top: 3.5, left: 110.5),
               child: Icon(
                 Icons.circle,
                 color: Colors.black38,
                 size: 60,
               )),
           Padding(
-              padding: const EdgeInsets.only(top: 8, left: 130),
+              padding: const EdgeInsets.only(top: 8, left: 115),
               child: Icon(Icons.power_settings_new,
                 size: 50,
                   color: isValid
