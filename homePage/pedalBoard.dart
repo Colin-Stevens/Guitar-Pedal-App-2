@@ -98,19 +98,31 @@ class _PedalBoard extends State<PedalBoard> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                    child: GridView.builder(
-                        controller: controller,
-                        itemCount: pedal.effects.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                                childAspectRatio: 1,
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 2,
-                                crossAxisSpacing: 1),
-                        padding: const EdgeInsets.only(top: 10),
-                        itemBuilder: (_, index) {
-                          return knob(pedal.effects[index]);
-                        })),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    verticalDirection: VerticalDirection.down,
+                    children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        for(int i=0; i<pedal.effects.length;i+=2)
+                          knob(pedal.effects[i])
+                      ],
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        for(int i=1; i<pedal.effects.length;i+=2)
+                          knob(pedal.effects[i])
+                      ],
+                    )
+                  ],)),
                 Padding(
                   padding: const EdgeInsets.only(top: 10, left: 2),
                   child: Text(
@@ -171,7 +183,7 @@ class _PedalBoard extends State<PedalBoard> {
                   value: effect.currValue,
                   color: Colors.black,
                   onChanged: valueChangedListener,
-                  size: 70)),
+                  size: 50)),
           Text(
             effect.name,
             style: const TextStyle(

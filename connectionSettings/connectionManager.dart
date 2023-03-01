@@ -11,7 +11,7 @@ import 'package:tuple/tuple.dart';
 
 class ConnectionManager {
   /// Constants
-  static const int pollPeriod_ms = 50;
+  static const int pollPeriod_ms = 500;
   static const int pollPeriodScaner_ms = 2000;
   int pollPeriodScanerCounter = 0;
 
