@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:guitar_pedal_app/models/atribute_model.dart';
 import 'package:guitar_pedal_app/models/pedal_model.dart';
@@ -13,6 +16,7 @@ const CONFIGURE = 'C';
 
 Uuid pedalService = Uuid.parse("91bad492-b950-4226-aa2b-4ede9fa42f59");
 Uuid rxUuid = Uuid.parse("cba1d466-344c-4be3-ab3f-189f80dd7518");
+Uuid eqUuid = Uuid.parse("cba1d466-344c-4be3-ab3f-189f80dd7517");
 Uuid txUuid = Uuid.parse("cba1d466-344c-4be3-ab3f-189f80dd7519");
 
 class Device {
@@ -20,11 +24,18 @@ class Device {
   String name;
   FlutterReactiveBle flutterReactiveBle = FlutterReactiveBle();
   late QualifiedCharacteristic _rxCharacteristic;
+  late QualifiedCharacteristic _eqCharacteristic;
   late QualifiedCharacteristic _txCharacteristic;
   String incomingCommand = "";
   List<String> recievedResponses = [];
 
   List<Pedal> knownPedals = [];
+
+  List<double> eqData = List<double>.filled(1024, 1.0);
+  int eqIndex = 0;
+  int currValue = 0;
+  ByteData currValueByte = ByteData(4);
+  int byteIndex = 0;
 
   Device(this.id, this.name);
 
@@ -50,6 +61,39 @@ class Device {
           incomingCommand = "";
         }
       }
+      // code to handle incoming data
+    }, onError: (dynamic error) {
+      // code to handle errors
+    });
+
+    _eqCharacteristic = QualifiedCharacteristic(
+        serviceId: pedalService, characteristicId: eqUuid, deviceId: id);
+    flutterReactiveBle.subscribeToCharacteristic(_eqCharacteristic).listen(
+        (data) {
+      if (data.length == 11 &&
+          String.fromCharCodes(data.getRange(0, 11)) == "NEWDATA") {
+        eqIndex = 0;
+        byteIndex = 0;
+        currValue = 0;
+
+        // ByteData bytearray = ByteData(4);
+        // bytearray.setUint32(0, value);
+      } else {
+        Uint8List bytes = Uint8List.fromList(data);
+        for (int byte in bytes) {
+          currValue += (byte << (byteIndex * 8));
+          if (byteIndex == 3) {
+            currValueByte.setUint32(0, currValue);
+            eqData[eqIndex] = currValueByte.getFloat32(0);
+            byteIndex = 0;
+            currValue = 0;
+            eqIndex++;
+          } else {
+            byteIndex++;
+          }
+        }
+      }
+
       // code to handle incoming data
     }, onError: (dynamic error) {
       // code to handle errors

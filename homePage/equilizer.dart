@@ -1,54 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:guitar_pedal_app/bloc/app_bloc.dart';
 import 'package:guitar_pedal_app/models/atribute_model.dart';
 //import 'package:charts_flutter/flutter.dart' as charts;
 
 class EquilizerWidget extends StatelessWidget {
-  final Stream Eqstream;
-  const EquilizerWidget(this.Eqstream, {super.key});
-
+  const EquilizerWidget({super.key});
+  static const maxValue = (2 ^ 32) - 1;
+  static const maxPixel = 180.0;
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-        stream: Eqstream,
-        initialData: const <double>[1,2,3,4],
-        builder: (context, snapshot) {
-          final buffer = snapshot.data as List<double>;
+    AppBloc bloc = BlocProvider.of<AppBloc>(context);
 
-          List<Widget> eqVisual = [];
+    List<Widget> eqVisual = [];
 
-          for (double value in buffer) {
-            eqVisual.add(Expanded(
-                child: Padding(
-                    padding: const EdgeInsets.only(left: 2, right: 2),
-                    child: Container(
-                      height: value * 10,
-                      color: const Color.fromARGB(255, 228, 187, 111),
-                    ))));
-          }
-          return Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Text("We got this data: \n "),
-                SizedBox(
-                    height: 200,
-                    child: Stack(
-                        alignment: AlignmentDirectional.bottomStart,
-                        children: [
-                          Container(
-                            color: const Color.fromARGB(255, 84, 78, 77),
-                            width: MediaQuery.of(context).size.width,
-                            height: 200,
-                          ),
-                          Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.max,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: eqVisual)
-                        ]))
-              ]);
-        });
+    for (double value
+        in bloc.appRepository.connectionManager.activeDevice.eqData) {
+      if (value < 0) {
+        value = 1;
+      }
+      eqVisual.add(Expanded(
+          child: Padding(
+              padding: const EdgeInsets.only(left: 2, right: 2),
+              child: Container(
+                height: maxPixel*(value/maxValue),
+                color: const Color.fromARGB(255, 228, 187, 111),
+              ))));
+    }
+
+    return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text("We got this data: \n "),
+          SizedBox(
+              height: 200,
+              child:
+                  Stack(alignment: AlignmentDirectional.bottomStart, children: [
+                Container(
+                  color: const Color.fromARGB(255, 84, 78, 77),
+                  width: MediaQuery.of(context).size.width,
+                  height: 200,
+                ),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: eqVisual)
+              ]))
+        ]);
   }
 }
 

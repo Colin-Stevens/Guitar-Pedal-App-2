@@ -73,7 +73,7 @@ class _HomePage extends State<HomePage> {
     List<PedalBoardModel> pedalBoards = bloc.appRepository.pedalBoardlist;
 
     return Stack(children: [
-      EquilizerWidget(bloc.appRepository.EQcontroller.stream),
+      EquilizerWidget(),
       DraggableScrollableSheet(
           initialChildSize: .95,
           minChildSize: 0.5,
@@ -138,23 +138,29 @@ class _HomePage extends State<HomePage> {
   }
 
   genPedalBoardPage() {
-    return Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          EquilizerWidget(bloc.appRepository.EQcontroller.stream),
-          Expanded(
-            child: Stack(children: [
-            const SizedBox.expand(
-                child: DecoratedBox(
-                    decoration: BoxDecoration(
-                  color: Colors.white,
-                ))),
-            PedalBoard(
-                    bloc.appRepository.selected.id)
-          ]))
-        ]);
+    return Stack(children: [
+      EquilizerWidget(),
+      DraggableScrollableSheet(
+          initialChildSize: .95,
+          minChildSize: 0.5,
+          maxChildSize: .95,
+          builder: (BuildContext context, ScrollController scrollController) {
+            return Stack(children: [
+              SizedBox(
+                  height: 300,
+                  width: MediaQuery.of(context).size.width,
+                  child: const DecoratedBox(
+                      decoration: BoxDecoration(
+                    color: Colors.white,
+                  ))),
+              Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).padding.bottom),
+                  child: PedalBoard(
+                      bloc.appRepository.selected.id, scrollController))
+            ]);
+          })
+    ]);
   }
 
   genScreenWithNavBar(Function() screen, String title) {
@@ -279,16 +285,16 @@ class PedalBoardWidget extends StatelessWidget {
       GestureDetector(
         child: Stack(children: [
           const Padding(
-              padding: EdgeInsets.only(top: 3.5, left: 110.5),
+              padding: EdgeInsets.only(top: 3.5, left: 125.5),
               child: Icon(
                 Icons.circle,
                 color: Colors.black38,
                 size: 60,
               )),
           Padding(
-              padding: const EdgeInsets.only(top: 8, left: 115),
+              padding: const EdgeInsets.only(top: 8, left: 130),
               child: Icon(Icons.power_settings_new,
-                  size: 50,
+                size: 50,
                   color: isValid
                       ? isActive
                           ? Color.fromARGB(255, 82, 139, 84)

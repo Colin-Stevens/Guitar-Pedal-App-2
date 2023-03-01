@@ -137,7 +137,7 @@ class ConnectionManager {
         .connectToDevice(
       id: deviceId,
       servicesWithCharacteristicsToDiscover: {
-        pedalService: [rxUuid, txUuid]
+        pedalService: [rxUuid, txUuid, eqUuid]
       },
       connectionTimeout: const Duration(seconds: 2),
     )
