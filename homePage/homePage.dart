@@ -138,29 +138,23 @@ class _HomePage extends State<HomePage> {
   }
 
   genPedalBoardPage() {
-    return Stack(children: [
-      EquilizerWidget(bloc.appRepository.EQcontroller.stream),
-      DraggableScrollableSheet(
-          initialChildSize: .95,
-          minChildSize: 0.5,
-          maxChildSize: .95,
-          builder: (BuildContext context, ScrollController scrollController) {
-            return Stack(children: [
-              SizedBox(
-                  height: 300,
-                  width: MediaQuery.of(context).size.width,
-                  child: const DecoratedBox(
-                      decoration: BoxDecoration(
-                    color: Colors.white,
-                  ))),
-              Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).padding.bottom),
-                  child: PedalBoard(
-                      bloc.appRepository.selected.id, scrollController))
-            ]);
-          })
-    ]);
+    return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          EquilizerWidget(bloc.appRepository.EQcontroller.stream),
+          Expanded(
+            child: Stack(children: [
+            const SizedBox.expand(
+                child: DecoratedBox(
+                    decoration: BoxDecoration(
+                  color: Colors.white,
+                ))),
+            PedalBoard(
+                    bloc.appRepository.selected.id)
+          ]))
+        ]);
   }
 
   genScreenWithNavBar(Function() screen, String title) {
@@ -294,7 +288,7 @@ class PedalBoardWidget extends StatelessWidget {
           Padding(
               padding: const EdgeInsets.only(top: 8, left: 115),
               child: Icon(Icons.power_settings_new,
-                size: 50,
+                  size: 50,
                   color: isValid
                       ? isActive
                           ? Color.fromARGB(255, 82, 139, 84)

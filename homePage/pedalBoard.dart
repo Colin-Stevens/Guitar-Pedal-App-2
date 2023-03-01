@@ -12,8 +12,7 @@ import 'package:knob_widget/knob_widget.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 
 class PedalBoard extends StatefulWidget {
-  const PedalBoard(this.pedalBoardModelName, this.controller, {super.key});
-  final ScrollController controller;
+  const PedalBoard(this.pedalBoardModelName, {super.key});
   final String pedalBoardModelName;
 
   @override
@@ -40,7 +39,7 @@ class _PedalBoard extends State<PedalBoard> {
   Widget build(BuildContext context) {
     return SizedBox.expand(
         child: ReorderableGridView.builder(
-      controller: widget.controller,
+      //controller: widget.controller,
       itemCount: pedalBoardModel.pedals.length + 1,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           childAspectRatio: 1.3,
@@ -50,7 +49,7 @@ class _PedalBoard extends State<PedalBoard> {
       //padding: const EdgeInsets.symmetric(horizontal: 40),
       itemBuilder: (_, index) {
         return index <= (pedalBoardModel.pedals.length - 1)
-            ? pedalWidget(pedalBoardModel.pedals[index], widget.controller)
+            ? pedalWidget(pedalBoardModel.pedals[index])
             : Padding(
                 key: const Key("AddPedal"),
                 padding: const EdgeInsets.all(20),
@@ -82,7 +81,7 @@ class _PedalBoard extends State<PedalBoard> {
     ));
   }
 
-  Widget pedalWidget(Pedal pedal, ScrollController controller) {
+  Widget pedalWidget(Pedal pedal) {
     return GestureDetector(
         key: Key(pedal.name),
         child: Container(
