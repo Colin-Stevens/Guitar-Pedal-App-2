@@ -51,7 +51,10 @@ class AppBloc extends HydratedBloc<AppEvent, AppState> {
     on<AddPedal>((event, emit) {
       if (state is CreatePedal) {
         appRepository.selected.pedals.add(event.newPedal);
-        appRepository.connectionManager.addPedal(event.newPedal);
+        if(appRepository.selected.isActive){
+          appRepository.connectionManager.addPedal(event.newPedal);
+        }
+        
         emit(const DisplayPedalBoard());
       } else {
         emit(const CreatePedal());

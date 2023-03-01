@@ -152,8 +152,10 @@ class _PedalBoard extends State<PedalBoard> {
                       ]));
           if (val == 'Yes') {
             setState(() {
-              bloc.appRepository.connectionManager.deletePedal(
+              if(bloc.appRepository.selected.isActive){
+                bloc.appRepository.connectionManager.deletePedal(
                   pedal.name, pedalBoardModel.pedals.indexOf(pedal));
+              }
               pedalBoardModel.pedals.remove(pedal);
             });
           }
@@ -183,7 +185,7 @@ class _PedalBoard extends State<PedalBoard> {
                   value: effect.currValue,
                   color: Colors.black,
                   onChanged: valueChangedListener,
-                  size: 50)),
+                  size: 70)),
           Text(
             effect.name,
             style: const TextStyle(
