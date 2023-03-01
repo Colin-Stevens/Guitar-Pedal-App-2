@@ -7,6 +7,9 @@ const SYNC_PEDALS = 'P';
 const UPDATE_PEDAL = 'U';
 const SWAP_PEDAL = 'R';
 const EQ_DATA = 'E';
+const ADD_PEDAL = 'A';
+const DELETE_PEDAL = 'X';
+const CONFIGURE = 'C';
 
 Uuid pedalService = Uuid.parse("91bad492-b950-4226-aa2b-4ede9fa42f59");
 Uuid rxUuid = Uuid.parse("cba1d466-344c-4be3-ab3f-189f80dd7518");

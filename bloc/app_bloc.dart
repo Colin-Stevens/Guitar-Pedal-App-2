@@ -31,9 +31,12 @@ class AppBloc extends HydratedBloc<AppEvent, AppState> {
       if (state is DisplayPedalBoardGrid) {
         for (PedalBoardModel currPedalBoard in appRepository.pedalBoardlist) {
           currPedalBoard.isActive = currPedalBoard.id == event.id;
+          if (currPedalBoard.isActive) {
+            appRepository.connectionManager
+                .configurePedalBoard(currPedalBoard.pedals, currPedalBoard.id);
+          }
         }
-        emit(const ActivatePedalBoardState());
-        // DO Activating stuff
+
         emit(const DisplayPedalBoardGrid());
       }
     });
@@ -48,6 +51,7 @@ class AppBloc extends HydratedBloc<AppEvent, AppState> {
     on<AddPedal>((event, emit) {
       if (state is CreatePedal) {
         appRepository.selected.pedals.add(event.newPedal);
+        appRepository.connectionManager.addPedal(event.newPedal);
         emit(const DisplayPedalBoard());
       } else {
         emit(const CreatePedal());
@@ -110,8 +114,6 @@ class AppBloc extends HydratedBloc<AppEvent, AppState> {
         return const CreatePedalBoard();
       case "DisplayPedalBoardGrid":
         return const DisplayPedalBoardGrid();
-      case "ActivatePedalBoardState":
-        return const ActivatePedalBoardState();
       case "DisplayPedalBoard":
         return const DisplayPedalBoard();
       case "CreatePedal":

@@ -21,10 +21,6 @@ class DisplayPedalBoardGrid extends AppState {
   const DisplayPedalBoardGrid() : super('DisplayPedalBoardGrid');
 }
 
-class ActivatePedalBoardState extends AppState {
-  const ActivatePedalBoardState() : super('ActivatePedalBoardState');
-}
-
 class DisplayPedalBoard extends AppState {
   const DisplayPedalBoard() : super('DisplayPedalBoard');
 }

@@ -210,7 +210,42 @@ class ConnectionManager {
   /// TODO: Validate indexing is correct
   /// No longer need to send pedal name. Update on esp32 first
   void reorderPedal(int oldIdx, int newIdx, String pedalName) {
-    commands.add("<$SWAP_PEDAL $pedalName $oldIdx $newIdx | >");
+    if (deviceConnected) {
+      commands.add("<$SWAP_PEDAL $pedalName $oldIdx $newIdx | >");
+    }
+  }
+
+  void addPedal(Pedal pedal) {
+    if (deviceConnected) {
+      String command = "<$ADD_PEDAL ${pedal.name} ";
+
+      for (PedalAtribute attr in pedal.effects) {
+        command += "${attr.currValue} ";
+      }
+      command += "| >";
+      commands.add(command);
+    }
+  }
+
+  void deletePedal(String name, int index) {
+    if (deviceConnected) {
+      commands.add("<$DELETE_PEDAL $name $index | >");
+    }
+  }
+
+  void configurePedalBoard(List<Pedal> pedals, String boardName) {
+    if (deviceConnected) {
+      String command = "<$CONFIGURE $boardName ";
+      for (Pedal pedal in pedals) {
+        command += "${pedal.name} ";
+        for (PedalAtribute attr in pedal.effects) {
+          command += "${attr.currValue} ";
+        }
+        command += "| ";
+      }
+      command += ">";
+      commands.add(command);
+    }
   }
 
   /// TODO: Sort of ineffcient to send data as ascii characters

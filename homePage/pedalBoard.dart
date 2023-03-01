@@ -87,7 +87,7 @@ class _PedalBoard extends State<PedalBoard> {
 
   Widget pedalWidget(Pedal pedal, ScrollController controller) {
     return GestureDetector(
-      key: Key(pedal.name),
+        key: Key(pedal.name),
         child: Container(
             decoration: BoxDecoration(
                 color: pedal.getColor(),
@@ -140,6 +140,8 @@ class _PedalBoard extends State<PedalBoard> {
                       ]));
           if (val == 'Yes') {
             setState(() {
+              bloc.appRepository.connectionManager.deletePedal(
+                  pedal.name, pedalBoardModel.pedals.indexOf(pedal));
               pedalBoardModel.pedals.remove(pedal);
             });
           }
