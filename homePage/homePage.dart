@@ -284,21 +284,22 @@ class PedalBoardWidget extends StatelessWidget {
           }),
       GestureDetector(
         child: Stack(children: [
-          Padding(
-              padding: const EdgeInsets.only(top: 5, left: 150),
-              child: Icon(Icons.power_settings_new,
-                  color: isValid
-                      ? isActive
-                          ? Colors.green
-                          : Colors.white54
-                      : Colors.red)),
           const Padding(
-              padding: EdgeInsets.only(top: 2.5, left: 147.5),
+              padding: EdgeInsets.only(top: 3.5, left: 125.5),
               child: Icon(
                 Icons.circle,
                 color: Colors.black38,
-                size: 30,
-              ))
+                size: 60,
+              )),
+          Padding(
+              padding: const EdgeInsets.only(top: 8, left: 130),
+              child: Icon(Icons.power_settings_new,
+                size: 50,
+                  color: isValid
+                      ? isActive
+                          ? Color.fromARGB(255, 82, 139, 84)
+                          : Colors.white54
+                      : Colors.red)),
         ]),
         onTap: () {
           BlocProvider.of<AppBloc>(context).add(ActivatePedalBoard(id));

@@ -60,11 +60,12 @@ class Device {
   }
 
   /// Issue a commmand to the device
-  void sendCommand(String command) {
+  void sendCommand(String command) async {
     while (command.isNotEmpty) {
       if (command.length > 20) {
-        flutterReactiveBle.writeCharacteristicWithResponse(_txCharacteristic,
-            value: command.substring(0, 20).codeUnits);
+        final response = await flutterReactiveBle
+            .writeCharacteristicWithResponse(_txCharacteristic,
+                value: command.substring(0, 20).codeUnits);
         command = command.substring(20);
       } else {
         flutterReactiveBle.writeCharacteristicWithResponse(_txCharacteristic,
