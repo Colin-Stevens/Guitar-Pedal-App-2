@@ -31,11 +31,9 @@ class Device {
 
   List<Pedal> knownPedals = [];
 
-  List<double> eqData = List<double>.filled(1024, 1.0);
+  List<int> eqData = List<int>.filled(32, 1);
+  List<int> eqDataTmp = List<int>.filled(32, 1);
   int eqIndex = 0;
-  int currValue = 0;
-  ByteData currValueByte = ByteData(4);
-  int byteIndex = 0;
 
   Device(this.id, this.name);
 
@@ -70,27 +68,27 @@ class Device {
         serviceId: pedalService, characteristicId: eqUuid, deviceId: id);
     flutterReactiveBle.subscribeToCharacteristic(_eqCharacteristic).listen(
         (data) {
-      if (data.length == 11 &&
-          String.fromCharCodes(data.getRange(0, 11)) == "NEWDATA") {
+      if (data.length == 7 &&
+          String.fromCharCodes(data.getRange(0, 7)) == "NEWDATA") {
         eqIndex = 0;
-        byteIndex = 0;
-        currValue = 0;
-
-        // ByteData bytearray = ByteData(4);
-        // bytearray.setUint32(0, value);
-      } else {
-        Uint8List bytes = Uint8List.fromList(data);
-        for (int byte in bytes) {
-          currValue += (byte << (byteIndex * 8));
-          if (byteIndex == 3) {
-            currValueByte.setUint32(0, currValue);
-            eqData[eqIndex] = currValueByte.getFloat32(0);
-            byteIndex = 0;
-            currValue = 0;
-            eqIndex++;
-          } else {
-            byteIndex++;
+        int maxValue = 0;
+        for (int i in eqDataTmp) {
+          if (i > maxValue) {
+            maxValue = i;
           }
+        }
+        for (int i = 0; i < eqData.length; i++) {
+          eqData[i] = (180 * (eqDataTmp[i] / maxValue)).round() + 1;
+        }
+      } else {
+        ByteData byteValue = ByteData(4);
+        for (int i = 0; i < 4; i++) {
+          byteValue.setInt8(3, data[0 + i * 4]);
+          byteValue.setInt8(2, data[1 + i * 4]);
+          byteValue.setInt8(1, data[2 + i * 4]);
+          byteValue.setInt8(0, data[3 + i * 4]);
+          eqDataTmp[eqIndex] = byteValue.getInt32(0).abs();
+          eqIndex++;
         }
       }
 
