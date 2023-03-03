@@ -14,18 +14,13 @@ class EquilizerWidget extends StatelessWidget {
 
     List<Widget> eqVisual = [];
 
-    for (int value
+    for (double value
         in bloc.appRepository.connectionManager.activeDevice.eqData) {
-      if (value < 0) {
-        value = 1;
-      }
       eqVisual.add(Expanded(
-          child: Padding(
-              padding: const EdgeInsets.only(left: 1, right: 1),
-              child: Container(
-                height: value.toDouble(),
+          child:Container(
+                height: value,
                 color: const Color.fromARGB(255, 228, 187, 111),
-              ))));
+              )));
     }
 
     return Column(

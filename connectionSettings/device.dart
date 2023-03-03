@@ -1,3 +1,5 @@
+import 'dart:ffi';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -13,7 +15,7 @@ const EQ_DATA = 'E';
 const ADD_PEDAL = 'A';
 const DELETE_PEDAL = 'X';
 const CONFIGURE = 'C';
-
+const EQ_FFT_SIZE = 128;
 Uuid pedalService = Uuid.parse("91bad492-b950-4226-aa2b-4ede9fa42f59");
 Uuid rxUuid = Uuid.parse("cba1d466-344c-4be3-ab3f-189f80dd7518");
 Uuid eqUuid = Uuid.parse("cba1d466-344c-4be3-ab3f-189f80dd7517");
@@ -31,8 +33,8 @@ class Device {
 
   List<Pedal> knownPedals = [];
 
-  List<int> eqData = List<int>.filled(32, 1);
-  List<int> eqDataTmp = List<int>.filled(32, 1);
+  List<double> eqData = List<double>.filled(EQ_FFT_SIZE, 1.0);
+  List<double> eqDataTmp = List<double>.filled(EQ_FFT_SIZE, 1);
   int eqIndex = 0;
 
   Device(this.id, this.name);
@@ -71,8 +73,14 @@ class Device {
       if (data.length == 7 &&
           String.fromCharCodes(data.getRange(0, 7)) == "NEWDATA") {
         eqIndex = 0;
-        int maxValue = 0;
-        for (int i in eqDataTmp) {
+        double maxValue = 0;
+
+        for (int index = 0; index < EQ_FFT_SIZE; index++) {
+          eqDataTmp[index] =
+              eqDataTmp[index] * eqDataTmp[index] / (24000 / EQ_FFT_SIZE);
+        }
+
+        for (double i in eqDataTmp) {
           if (i > maxValue) {
             maxValue = i;
           }
@@ -80,6 +88,7 @@ class Device {
         for (int i = 0; i < eqData.length; i++) {
           eqData[i] = (180 * (eqDataTmp[i] / maxValue)).round() + 1;
         }
+        
       } else {
         ByteData byteValue = ByteData(4);
         for (int i = 0; i < 4; i++) {
@@ -87,7 +96,7 @@ class Device {
           byteValue.setInt8(2, data[1 + i * 4]);
           byteValue.setInt8(1, data[2 + i * 4]);
           byteValue.setInt8(0, data[3 + i * 4]);
-          eqDataTmp[eqIndex] = byteValue.getInt32(0).abs();
+          eqDataTmp[eqIndex] = byteValue.getInt32(0).toDouble();
           eqIndex++;
         }
       }
